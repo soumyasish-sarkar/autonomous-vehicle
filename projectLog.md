@@ -2,6 +2,8 @@
 
 ## Tools to be installed
 
+### Machine Learning - Image Processing Setup
+
 1. **Anaconda / Miniconda**
    - Why: Helps create isolated environments (No "library conflict").
    - You can make one environment for ML (Tensorflow, Torch, Opencv), another later for ROS2.
@@ -10,8 +12,14 @@
         > Download **Miniconda Installers** from 
         >> https://www.anaconda.com/download/success
 
+      - `Leave all checkbox Unchecked during miniconda installation`
+
+
      - Create a new conda environment *To make preoject dependencies independent*
+     - **Open Anaconda Prompt**
        > conda create -n `project_name` python=3.10
+
+       > carla env list
 
        > conda activate `project_name`
 
@@ -23,6 +31,9 @@
    - **Recomended**: JupyterLab.
          
       > conda install -c conda-forge jupyterlab
+
+      > jupyter-lab --version
+
 
 3. **OpenCV**
    - `Install inside conda itself`
@@ -72,4 +83,5 @@
 
    - `Run this on Colab terminal to store datasets and models to Google Drive.`
       > from google.colab import drive
-      >> drive.mount('/content/drive')
+
+      > drive.mount('/content/drive')
