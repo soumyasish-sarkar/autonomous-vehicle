@@ -85,3 +85,92 @@
       > from google.colab import drive
 
       > drive.mount('/content/drive')
+
+
+## Learning Requirements
+
+## Image processing - Basics
+
+- **Introduction** -> Overview of computer vision concepts.
+- **Computer Vision Basics** -> Core principles and applications in autonomous vehicles.
+- **OpenCV (Basic Functions)** -> Fundamental functions to read, display, and manipulate images.
+- **Read and Show Image** -> `imread()`, `imshow()` usage.
+- **Show Multiple Images** -> Displaying multiple frames simultaneously.
+- **Draw Shapes on Image** -> Line, rectangle, circle, and ellipse drawing for visualization.
+- **Text Over an Image** -> Overlaying text for annotations and debugging.
+
+## Image processing - Advanced (Project centric)
+> Frame Size used: (640,360) 
+
+### Flow Chart for Lane detection
+  - Image / Video -> (optional: Greyscale [nearly same result with or without] ) -> GaussianBlur [To remove noise from image] -> Canny Edge Detection -> Defining Region of Interest -> 
+
+
+### Edge Detection -> Detect lane markings; basis for path planning.
+  > Article for Lane detection :
+  
+  > https://ieeexplore.ieee.org/document/10499078
+
+  >https://www.irjet.net/archives/V11/i3/IRJET-V11I3206.pdf
+
+  **Edge Detection Techniques**
+  - 1. **Canny Oerator** -> suppresses weak/noisy edges (via hysteresis), Produces thin edges (easy for Hough transform line detection), Tunable thresholds (50–150 can be adjusted based on road lighting).
+  - 2. Sobel Operator -> Produces thicker edges, Good for detecting directional edges.
+  - 3. Prewitt Operator (Similar to Sobel) -> Less accurate, rarely used in modern systems.
+  - 4. Laplacian of Gaussian (LoG) -> More sensitive to noise, produces double edges.
+  - 5. Deep Learning-based Edge Detectors -> Holistically-Nested Edge Detection (HED), RCF, DexiNed.
+  - **Canny Edge Detection techniques** is used
+    > canny=cv2.Canny(img,50,150)
+
+**Defining Region of Interest**
+- Define polygon (triangle/trapezoid focusing on road area)
+- ROI to remove extra parts like sky, especially upper portion of the image/video
+- We will use **Trapezium** / \ , because it gives wider view than traingle
+- Lower base will be same as the lower verices of image itself, upper vertices of Trapezium somewhere around the center-top (near the horizon line).
+
+### ROI Implementation
+> height, width = img.shape
+- Gets the size of the input image (grayscale edge image).
+- height = number of rows (y-axis)
+- width = number of columns (x-axis)
+> mask = np.zeros_like(img)
+- Creates a black mask (all zeros) with the same size as the image, will be used to "cut out" the region you want to keep.
+>    polygon = np.array([[
+        (0, height),      # bottom-left
+        (width, height),  # bottom-right
+        (width // 4, height // 2)  # middle-left
+        (3*width // 4, height // 2)  # middle-right
+    ]], np.int32)
+- ROI polyg  >Area
+
+> cv2.fillPoly(mask, polygon, 255)
+- Fill ROI with white
+
+
+> roi = cv2.bitwise_and(img, mask)
+- Resultanted ROI
+
+### Hough Line
+
+
+
+
+- **Scaling/Rotating Images** -> Data augmentation for ML training.
+- **Image Blurring** -> Denoising to improve detection accuracy.
+- **Play Video using OpenCV** -> Read and render video frames.
+- **Capture Video from Camera** -> Real-time data collection.
+- **Morphological Operations** -> Image cleaning for better feature extraction.
+- **Extract Images from Video** -> Dataset generation for training.
+- **Color Conversion** -> `cvtColor()` for preprocessing.
+- **Region of Interest (ROI)** -> Focus on relevant image areas.
+- **Flip, Rotate, Transpose** -> Data augmentation for robustness.
+- **Color Spaces** -> Useful in traffic light detection (red/green segmentation).
+- **Filter Color with OpenCV** -> Segmentation for detecting signals or objects.
+- **Perspective Transformation** -> Optional, useful for lane-view transformations.
+- **Thresholding** -> Simple thresholding and Otsu’s binarization.
+- **Histogram Equalization** -> Improve night vision image quality.
+- **Image Contours** -> Shape detection for preprocessing objects like pedestrians or stop signs.
+- **Object Detection Using Contours** -> Real-time detection from webcam feed.
+- **Hough Transformations** -> Line detection (lanes) and circle detection (traffic lights).
+- **Vehicle Detection in Video Frames** -> Concepts transferable to pedestrian detection.
+- **Pedestrian Detection from Streaming Video** -> Closest requirement to autonomous vehicle project.
