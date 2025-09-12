@@ -20,8 +20,10 @@ mask = np.zeros_like(canny)
 polygon = np.array([[
         (0, height),      # bottom-left
         (width, height),  # bottom-right
-        ((3*width )// 4, height // 2),  # middle-right
-        (width // 4, height // 2)  # middle-left
+        #((3*width )// 4, height // 2),  # middle-right
+        (width,height // 2 ),
+        #(width // 4, height // 2)  # middle-left
+        (0, height // 2 ),
     ]], np.int32)
 
 #Fill ROI with white
@@ -29,10 +31,31 @@ cv2.fillPoly(mask, polygon, 255)
 #Resultanted ROI
 roi = cv2.bitwise_and(canny, mask)
 
+#Hough Line Transformation to detect the straight line path
+houghLine = cv2.HoughLinesP(
+        roi,
+        rho=1, #journal rho = 1
+        theta=np.pi/180,
+        threshold=150, #Journal threshold = 100 #at 50 noisy line getting marked
+        minLineLength=100, #Journal minLineLength=100
+        maxLineGap=50 #Journal maxLineGap=50
+    )
+
+#copy of canny
+hough = np.copy(img)
+
+#drawing hough lines on the image
+if houghLine is not None:
+    for line in houghLine:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+
 #displaying the images
 cv2.imshow("image",img)
-cv2.imshow("Canny ED - with Gaussian Blur",canny)
+#cv2.imshow("Canny ED - with Gaussian Blur",canny)
 cv2.imshow("ROI",roi)
+cv2.imshow("Hough Line",hough)
 
 
 cv2.waitKey(0)
