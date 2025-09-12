@@ -150,10 +150,72 @@
 > roi = cv2.bitwise_and(img, mask)
 - Resultanted ROI
 
-### Hough Line
+### Hough Line Detection
+```python
+houghLine = cv2.HoughLinesP(
+        roi,
+        rho=1, #journal rho = 1
+        theta=np.pi/180,
+        threshold=100, #Journal threshold = 100 #50 detect noisy lines too
+        minLineLength=100, #Journal minLineLength=100
+        maxLineGap=50 #Journal maxLineGap=50
+    )
+```
+**NOTE :**  houghLine is not an image, it’s an array of line endpoints returned by cv2.HoughLinesP()
+```python
+# Draw detected lines - NOT ACCURATE
+hough = np.copy(img)
+if houghLine is not None:
+    for line in houghLine:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
+```
+**NOTE :** Horizontal or near to horizontal lines are coming, we will remove those lines having angle < 20 degree with horizontal axis
+```python
+# Draw detected lines - NOT PERFECT FOR ROAD IS ON SHIFTED SKIGHTLY ONE SIDE
+if houghLine is not None:
+   for line in houghLine:
+      x1, y1,x2,y2=line[0]
+
+      # Calculate angle in degrees
+      angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
+        
+      # Filter: ignore near-horizontal lines
+      if abs(angle) < 20:   # threshold angle, adjust if needed
+         continue
+      cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
+```
+
+> `img` (Input: binary edge image – output from Canny + ROI)
+- White pixels = possible edges (where lines may exist).
+
+> `rho=2`
+- Distance resolution of the accumulator in pixels.
+- Means we are checking for lines at steps of **2 pixels**.
+- Smaller = more precise, but computationally heavier.
+
+> `theta=np.pi/180`
+- Angular resolution in radians.
+- Here, it’s **1° (π/180 rad)**.
+- Determines how finely we search for line angles.
+
+> `threshold=50`
+- Minimum number of votes in Hough accumulator to “confirm” a line.
+- Higher → fewer, but stronger/more reliable lines.
+- Lower → more lines detected (including noise).
+
+> `minLineLength=40`
+- Lines shorter than **40 pixels** are ignored.
+- Useful to avoid detecting small specks or broken edges.
+
+> `maxLineGap=20`
+- Maximum gap (in pixels) between line segments that can still be connected.
+- Helps merge broken lane markings into a single longer line.
 
 
 
+
+## not done yet...
 
 - **Scaling/Rotating Images** -> Data augmentation for ML training.
 - **Image Blurring** -> Denoising to improve detection accuracy.
