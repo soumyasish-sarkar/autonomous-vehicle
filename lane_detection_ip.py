@@ -45,11 +45,22 @@ houghLine = cv2.HoughLinesP(
 hough = np.copy(img)
 
 #drawing hough lines on the image
+# if houghLine is not None:
+#     for line in houghLine:
+#         x1, y1, x2, y2 = line[0]
+#         cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
+#
 if houghLine is not None:
     for line in houghLine:
         x1, y1, x2, y2 = line[0]
-        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
+        # Calculate angle in degrees
+        angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
+
+        # Filter: ignore near-horizontal lines
+        if abs(angle) <5:  # threshold angle, adjust if needed
+            continue
+        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
 
 #displaying the images
 cv2.imshow("image",img)
