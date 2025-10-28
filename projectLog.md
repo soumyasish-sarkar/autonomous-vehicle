@@ -42,7 +42,22 @@
 
       > pip install opencv-python
 
-4. **PyTorch**
+4. **numpy**
+   - `Install inside conda itself`
+   - Why: scientific computing library for Python.
+
+      > pip install numpy
+
+4. **matplotlib**
+   - `Install inside conda itself`
+   - Why: plotting library for Python.
+
+      > pip install matplotlib
+
+
+**NOT DONE YET**
+
+5. **PyTorch**
    - `Install inside conda itself`
    - Why: YOLOv5/YOLOv8 depends on PyTorch.
    - **CPU-only version (no GPU needed)**
@@ -151,40 +166,7 @@
 - Resultanted ROI
 
 ### Hough Line Detection
-```python
-houghLine = cv2.HoughLinesP(
-        roi,
-        rho=1, #journal rho = 1
-        theta=np.pi/180,
-        threshold=100, #Journal threshold = 100 #50 detect noisy lines too
-        minLineLength=100, #Journal minLineLength=100
-        maxLineGap=50 #Journal maxLineGap=50
-    )
-```
-**NOTE :**  houghLine is not an image, it’s an array of line endpoints returned by cv2.HoughLinesP()
-```python
-# Draw detected lines - NOT ACCURATE
-hough = np.copy(img)
-if houghLine is not None:
-    for line in houghLine:
-        x1, y1, x2, y2 = line[0]
-        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
-```
-**NOTE :** Horizontal or near to horizontal lines are coming, we will remove those lines having angle < 20 degree with horizontal axis
-```python
-# Draw detected lines - NOT PERFECT FOR ROAD IS ON SHIFTED SKIGHTLY ONE SIDE
-if houghLine is not None:
-   for line in houghLine:
-      x1, y1,x2,y2=line[0]
 
-      # Calculate angle in degrees
-      angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
-        
-      # Filter: ignore near-horizontal lines
-      if abs(angle) < 20:   # threshold angle, adjust if needed
-         continue
-      cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
-```
 
 > `img` (Input: binary edge image – output from Canny + ROI)
 - White pixels = possible edges (where lines may exist).
@@ -212,6 +194,51 @@ if houghLine is not None:
 - Maximum gap (in pixels) between line segments that can still be connected.
 - Helps merge broken lane markings into a single longer line.
 
+```python
+houghLine = cv2.HoughLinesP(
+        roi,
+        rho=1, #journal rho = 1
+        theta=np.pi/180,
+        threshold=100, #Journal threshold = 100 #50 detect noisy lines too
+        minLineLength=100, #Journal minLineLength=100
+        maxLineGap=50 #Journal maxLineGap=50
+    )
+```
+**NOTE :**  houghLine is not an image, it’s an array of line endpoints returned by cv2.HoughLinesP()
+```python
+# Draw detected lines - NOT ACCURATE
+hough = np.copy(img)
+if houghLine is not None:
+    for line in houghLine:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
+```
+**NOTE :** Horizontal or near to horizontal lines are coming, we will remove those lines having angle < 20 degree with horizontal axis
+```python
+# Draw detected lines - NOT PERFECT FOR ROAD IS ON SHIFTED SKIGHTLY ONE SIDE - BUT BETTER IN NORMAL ROAD
+if houghLine is not None:
+   for line in houghLine:
+      x1, y1,x2,y2=line[0]
+
+      # Calculate angle in degrees
+      angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
+        
+      # Filter: ignore near-horizontal lines
+      if abs(angle) < 20:   # threshold angle, adjust if needed
+         continue
+      cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
+```
+
+**NOTE:** We are taking lower threshold=50,upper threshold=150.
+These fixed values work only in certain lighting conditions. In real roads: 
+  - Bright sunny → edges too strong.
+  - Dark / shadowy → edges missed.
+
+So, we will adapt thresholds based on image statistics, such that in night having low light we able to detect lane easily.
+
+**NOTE:** Done with adaptive thresolding but problem with intersecting of road at far point or in turing lane intersect straight.
+
+**SOLUTION:** Reduce search are by reducing height from height //2 to height // 1.7 which will have less search domian
 
 
 
