@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 def lane_detection_IP(frame):
-    #frame = cv2.resize(frame, (640, 360))
+    frame = cv2.resize(frame, (640, 360))
 
     # image -> gaussianBlur -> Canny -> ROI
 
@@ -80,8 +80,8 @@ def lane_detection_IP(frame):
 
 
 
-img = cv2.imread(r"C:\Users\soumyasish-sarkar\PycharmProjects\opencv_learning\image\road6.jpg")
-img = cv2.resize(img, (640, 360))
+img = cv2.imread(r"resources\Lane Detection Test Video 01.mp4")
+#img = cv2.resize(img, (640, 360))
 frame = lane_detection_IP(img)
 
 cv2.imshow("Original image", img)
