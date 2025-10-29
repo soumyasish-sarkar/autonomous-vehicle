@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import output_file as op
-
 
 #------------------------------------
 # Lane detection function defination
@@ -10,6 +8,17 @@ def lane_detection(frame):
 
     #convert BGR to HSL color space
     hls_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+
+    # Extract BGR to HLS color space
+    L = hls_frame[:, :, 1]  # channel index 1 = Lightness
+    S = hls_frame[:, :, 2]  # channel index 2 = saturation
+
+    # For visualization, we can stack the two channels side by side
+    L_display = cv2.merge([L, L, L])  # Convert single channel to 3-channel grayscale
+    S_display = cv2.merge([S, S, S])
+
+    # Optional: Combine or return either channel for further processing
+    hls_frame = cv2.addWeighted(L_display, 0.5, S_display, 0.5, 0)
 
     processed_frame = hls_frame
 
@@ -36,7 +45,7 @@ def main():
     #Setup for video writer
     #-----------------------
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_path = "outputs/output_hls.mp4"
+    out_path = "outputs/output_l_s.mp4"
     fps = int(frame_capture.get(cv2.CAP_PROP_FPS))
     width = 640
     height = 360
@@ -63,7 +72,7 @@ def main():
 
         # Display frame
         cv2.imshow("Original", raw_frame)
-        cv2.imshow("Processed frame -- hls", frame_processed)
+        cv2.imshow("Processed frame -- l_s", frame_processed)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

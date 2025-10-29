@@ -119,7 +119,7 @@ cv2.destroyAllWindows()  # Closes all OpenCV display windows
 ### Flow Chart for Lane detection
   ![Alt text](./programs/resources/lanedetection.png)
 
-  **Setting up basic framework**
+#### Setting up basic framework
   - **Code for read and display of both raw and processed video frame on which future modification will be done**
 
 ```python
@@ -187,9 +187,22 @@ def main():
 main()
  ```
 
-  **Setting up basic framework**
-   - **Code for read and display of both raw and processed video frame on which future modification will be done**
+#### Convert to HLS (Hue, Lightness, Saturation)
+1. **Video Frame (BGR)**
+   - What it is: Raw image from camera in Blue–Green–Red color format
+   - Problem: Raw image contains too much information — we need to filter it to only road + lanes.
 
+2. **Convert to HLS → Extract L & S Channels**
+   > hls = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+   - L = hls[:, :, 1]  `# Lightness`
+   - S = hls[:, :, 2]  `# Saturation`
+
+   - Why required:
+      - In HLS (Hue, Lightness, Saturation) color space:
+      - L helps distinguish brightness (useful for edges).
+      - S emphasizes pure colors (useful for detecting yellow/white paint).
+      - Works better than RGB under shadows, glare, and lighting changes.
+   - Goal: Make lane lines easier to detect regardless of brightness variations.
 
   
 
