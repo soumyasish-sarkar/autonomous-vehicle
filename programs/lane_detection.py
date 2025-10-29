@@ -9,7 +9,6 @@ def lane_detection(frame):
     processed_frame= operations to be performed on frame #Need to be edited
     return processed_frame
 
-
 #------------------X-------------------
 
 

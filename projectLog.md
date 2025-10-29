@@ -185,3 +185,6 @@ def main():
 # Main Function Called
 main()
   ```
+
+**Setting up basic framework**
+  - **Code for read and display of both raw and processed video frame on which future modification will be done**
