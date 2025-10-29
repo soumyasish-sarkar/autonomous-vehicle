@@ -132,6 +132,7 @@ def main():
     frame_capture.release()
     cv2.destroyAllWindows()
 
+
     # -----------------------------------
     # Ask for output file name *after* video ends
     # -----------------------------------
