@@ -117,12 +117,13 @@ cv2.destroyAllWindows()  # Closes all OpenCV display windows
 
 
 ### Flow Chart for Lane detection
-  ![Alt text](./programs\resources\lanedetection.png)
+  ![Alt text](./programs/resources/lanedetection.png)
 
   **Setting up basic framework**
   - **Code for read and display of both raw and processed video frame on which future modification will be done**
-  ```python
-  import cv2
+
+```python
+import cv2
 import numpy as np
 
 
@@ -184,4 +185,12 @@ def main():
 
 # Main Function Called
 main()
-  ```
+ ```
+
+  **Setting up basic framework**
+   - **Code for read and display of both raw and processed video frame on which future modification will be done**
+
+
+  
+
+
