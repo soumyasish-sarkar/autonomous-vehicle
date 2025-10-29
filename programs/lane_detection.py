@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import output_file as op
 
 
 #------------------------------------
@@ -31,6 +32,16 @@ def main():
         print("Unable to open video frame")
         exit() #stop the code
 
+    #-----------------------
+    #Setup for video writer
+    #-----------------------
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out_path = "outputs/output_hls.mp4"
+    fps = int(frame_capture.get(cv2.CAP_PROP_FPS))
+    width = 640
+    height = 360
+    out = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+
 
     while True:
         ret, raw_frame = frame_capture.read()
@@ -46,16 +57,22 @@ def main():
         frame_processed = lane_detection(frame=raw_frame)
         #-------------x----------------
 
+        # ----write processed frame ----
+        out.write(frame_processed)
+        # ------------------------------
 
         # Display frame
         cv2.imshow("Original", raw_frame)
-        cv2.imshow("Processed frame -- L+S", frame_processed)
+        cv2.imshow("Processed frame -- hls", frame_processed)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+
+    out.release()
     frame_capture.release()
     cv2.destroyAllWindows()
+
 #-------------x-------------
 
 
