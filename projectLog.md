@@ -19,7 +19,7 @@
      - **Open Anaconda Prompt**
        > conda create -n `project_name` python=3.10
 
-       > carla env list
+       > conda env list
 
        > conda activate `project_name`
 
@@ -54,52 +54,18 @@
 
       > pip install matplotlib
 
+6. **PyCharm - Not Necessary**
+   - `Install PyCharm in the OS`
 
-**NOT DONE YET**
+   - Use miniconda environment from PyCharm
 
-5. **PyTorch**
-   - `Install inside conda itself`
-   - Why: YOLOv5/YOLOv8 depends on PyTorch.
-   - **CPU-only version (no GPU needed)**
-      - `cpuonly` version is sufficient for training/testing small datasets
+     > Miniconda Environment: `project_name` Linked to PyCharm Project
 
-         > conda install pytorch torchvision torchaudio cpuonly -c pytorch
+      > https://www.youtube.com/watch?v=LTlvcUWnjvc
 
-   - **GPU version (if you have NVIDIA GPU & CUDA installed)**
-      - Example for CUDA 11.8:
+7. **GitHub - Recomended**
+   - `Use version control i.e, GitHub recomended`
 
-         > conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
-
-
-   - `Verify Installation`
-
-      > python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
-
-5. **YOLOv5 / YOLOv8**
-   - Why: Pretrained models for pedestrian & traffic light detection.
-   - No need to train from scratch. Later you can fine-tune if needed.
-
-   - *YOLOv5 (classic):*
-      > git clone https://github.com/ultralytics/yolov5 
-
-      > cd yolov5
-
-      > pip install -r requirements.txt
-
-   - *YOLOv8 (latest, easier):*
-      > pip install ultralytics
-
-
-
-
-6. **Google Colab (Optional but Recommended)**
-   - Why: For large GPU-intensive training for free.
-   - Colab gives free Tesla T4 GPU, perfect for running YOLO on datasets.
-
-   - `Run this on Colab terminal to store datasets and models to Google Drive.`
-      > from google.colab import drive
-
-      > drive.mount('/content/drive')
 
 
 ## Learning Requirements
@@ -108,158 +74,114 @@
 
 - **Introduction** -> Overview of computer vision concepts.
 - **Computer Vision Basics** -> Core principles and applications in autonomous vehicles.
-- **OpenCV (Basic Functions)** -> Fundamental functions to read, display, and manipulate images.
-- **Read and Show Image** -> `imread()`, `imshow()` usage.
-- **Show Multiple Images** -> Displaying multiple frames simultaneously.
-- **Draw Shapes on Image** -> Line, rectangle, circle, and ellipse drawing for visualization.
-- **Text Over an Image** -> Overlaying text for annotations and debugging.
+- **OpenCV (Basic Functions)** -> Fundamental functions to read, display, and manipulate images/videos.
+- **Read and Show Image** -> 
+```python
+img = cv2.imread(r"resources\Lane Detection Test Image 01.jpg")
+img = cv2.resize(img, (640, 360))
+frame = lane_detection_IP(img)
+cv2.imshow("Original Image", img)
+cv2.imshow("Lane Detected Image", frame)
+cv2.waitKey(0)
+```
+- **Read and Show Video** -> 
+```python
+# READ VIDEO
+cap = cv2.VideoCapture(r"resources\Lane Detection Test Video 01.mp4")  # Opens video file, creates VideoCapture object
 
-## Image processing - Advanced (Project centric)
-> Frame Size used: (640,360) 
+# SHOW VIDEO
+while True:  # Infinite loop to read and display each video frame
+    ret, frame = cap.read()  # Reads the next frame from the video; 'ret' is True if reading is successful, and 'frame' is the image data
+    if not ret:  # If no frame is returned (end of video or error)
+        break  # Exit the loop
+
+    cv2.imshow("Original Video", frame)  # Displays the current frame in a window titled "Original Video"
+
+    # Press 'q' to quit
+    if cv2.waitKey(25) & 0xFF == ord('q'):  # Waits 25 ms for a key press; if 'q' is pressed, exit the loop
+        break
+
+cap.release()  # Releases the video capture object and frees the video file or camera
+cv2.destroyAllWindows()  # Closes all OpenCV display windows
+```
+
+- **Draw Shapes on Image/Video** -> Line, rectangle, circle, and ellipse drawing for visualization.
+```python
+#WILL BE UPDATED
+```
+- **Text Over an Image** -> Overlaying text for annotations and debugging.
+```python
+#WILL BE UPDATED
+```
+## Image processing - Project work
+
 
 ### Flow Chart for Lane detection
-  - Image / Video -> (optional: Greyscale [nearly same result with or without] ) -> GaussianBlur [To remove noise from image] -> Canny Edge Detection -> Defining Region of Interest -> 
+  ![Alt text](./programs\resources\lanedetection.png)
+
+  **Setting up basic framework**
+  - **Code for read and display of both raw and processed video frame on which future modification will be done**
+  ```python
+  import cv2
+import numpy as np
 
 
-### Edge Detection -> Detect lane markings; basis for path planning.
-  > Article for Lane detection :
-  
-  > https://ieeexplore.ieee.org/document/10499078
-
-  >https://www.irjet.net/archives/V11/i3/IRJET-V11I3206.pdf
-
-  **Edge Detection Techniques**
-  - 1. **Canny Oerator** -> suppresses weak/noisy edges (via hysteresis), Produces thin edges (easy for Hough transform line detection), Tunable thresholds (50–150 can be adjusted based on road lighting).
-  - 2. Sobel Operator -> Produces thicker edges, Good for detecting directional edges.
-  - 3. Prewitt Operator (Similar to Sobel) -> Less accurate, rarely used in modern systems.
-  - 4. Laplacian of Gaussian (LoG) -> More sensitive to noise, produces double edges.
-  - 5. Deep Learning-based Edge Detectors -> Holistically-Nested Edge Detection (HED), RCF, DexiNed.
-  - **Canny Edge Detection techniques** is used
-    > canny=cv2.Canny(img,50,150)
-
-**Defining Region of Interest**
-- Define polygon (triangle/trapezoid focusing on road area)
-- ROI to remove extra parts like sky, especially upper portion of the image/video
-- We will use **Trapezium** / \ , because it gives wider view than traingle
-- Lower base will be same as the lower verices of image itself, upper vertices of Trapezium somewhere around the center-top (near the horizon line).
-
-### ROI Implementation
-> height, width = img.shape
-- Gets the size of the input image (grayscale edge image).
-- height = number of rows (y-axis)
-- width = number of columns (x-axis)
-> mask = np.zeros_like(img)
-- Creates a black mask (all zeros) with the same size as the image, will be used to "cut out" the region you want to keep.
->    polygon = np.array([[
-        (0, height),      # bottom-left
-        (width, height),  # bottom-right
-        (width // 4, height // 2)  # middle-left
-        (3*width // 4, height // 2)  # middle-right
-    ]], np.int32)
-- ROI polyg  >Area
-
-> cv2.fillPoly(mask, polygon, 255)
-- Fill ROI with white
+#------------------------------------
+# Lane detection function defination
+#------------------------------------
+def lane_detection(frame):
+    processed_frame= operations to be performed on frame #Need to be edited
+    return processed_frame
 
 
-> roi = cv2.bitwise_and(img, mask)
-- Resultanted ROI
-
-### Hough Line Detection
+#------------------X-------------------
 
 
-> `img` (Input: binary edge image – output from Canny + ROI)
-- White pixels = possible edges (where lines may exist).
+# -------------------------
+# Main Function defination
+# -------------------------
+def main():
 
-> `rho=2`
-- Distance resolution of the accumulator in pixels.
-- Means we are checking for lines at steps of **2 pixels**.
-- Smaller = more precise, but computationally heavier.
+    #Read video frame
 
-> `theta=np.pi/180`
-- Angular resolution in radians.
-- Here, it’s **1° (π/180 rad)**.
-- Determines how finely we search for line angles.
+    #webcam input use: cv2.VideoCapture(0)
+    frame_path = r"resources/Lane Detection Test Video 01.mp4"
+    frame_capture = cv2.VideoCapture(frame_path)
 
-> `threshold=50`
-- Minimum number of votes in Hough accumulator to “confirm” a line.
-- Higher → fewer, but stronger/more reliable lines.
-- Lower → more lines detected (including noise).
-
-> `minLineLength=40`
-- Lines shorter than **40 pixels** are ignored.
-- Useful to avoid detecting small specks or broken edges.
-
-> `maxLineGap=20`
-- Maximum gap (in pixels) between line segments that can still be connected.
-- Helps merge broken lane markings into a single longer line.
-
-```python
-houghLine = cv2.HoughLinesP(
-        roi,
-        rho=1, #journal rho = 1
-        theta=np.pi/180,
-        threshold=100, #Journal threshold = 100 #50 detect noisy lines too
-        minLineLength=100, #Journal minLineLength=100
-        maxLineGap=50 #Journal maxLineGap=50
-    )
-```
-**NOTE :**  houghLine is not an image, it’s an array of line endpoints returned by cv2.HoughLinesP()
-```python
-# Draw detected lines - NOT ACCURATE
-hough = np.copy(img)
-if houghLine is not None:
-    for line in houghLine:
-        x1, y1, x2, y2 = line[0]
-        cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
-```
-**NOTE :** Horizontal or near to horizontal lines are coming, we will remove those lines having angle < 20 degree with horizontal axis
-```python
-# Draw detected lines - NOT PERFECT FOR ROAD IS ON SHIFTED SKIGHTLY ONE SIDE - BUT BETTER IN NORMAL ROAD
-if houghLine is not None:
-   for line in houghLine:
-      x1, y1,x2,y2=line[0]
-
-      # Calculate angle in degrees
-      angle = np.degrees(np.arctan2(y2 - y1, x2 - x1))
-        
-      # Filter: ignore near-horizontal lines
-      if abs(angle) < 20:   # threshold angle, adjust if needed
-         continue
-      cv2.line(hough, (x1, y1), (x2, y2), (0, 255, 0), 3)  # green lines
-```
-
-**NOTE:** We are taking lower threshold=50,upper threshold=150.
-These fixed values work only in certain lighting conditions. In real roads: 
-  - Bright sunny → edges too strong.
-  - Dark / shadowy → edges missed.
-
-So, we will adapt thresholds based on image statistics, such that in night having low light we able to detect lane easily.
-
-**NOTE:** Done with adaptive thresolding but problem with intersecting of road at far point or in turing lane intersect straight.
-
-**SOLUTION:** Reduce search are by reducing height from height //2 to height // 1.7 which will have less search domian
+    if not frame_capture.isOpened():
+        print("Unable to open video frame")
+        exit() #stop the code
 
 
+    while True:
+        ret, raw_frame = frame_capture.read()
+        if not ret:
+            break
 
-## not done yet...
+        # Resize frame for consistency (optional)
+        raw_frame = cv2.resize(raw_frame, (640, 360))
 
-- **Scaling/Rotating Images** -> Data augmentation for ML training.
-- **Image Blurring** -> Denoising to improve detection accuracy.
-- **Play Video using OpenCV** -> Read and render video frames.
-- **Capture Video from Camera** -> Real-time data collection.
-- **Morphological Operations** -> Image cleaning for better feature extraction.
-- **Extract Images from Video** -> Dataset generation for training.
-- **Color Conversion** -> `cvtColor()` for preprocessing.
-- **Region of Interest (ROI)** -> Focus on relevant image areas.
-- **Flip, Rotate, Transpose** -> Data augmentation for robustness.
-- **Color Spaces** -> Useful in traffic light detection (red/green segmentation).
-- **Filter Color with OpenCV** -> Segmentation for detecting signals or objects.
-- **Perspective Transformation** -> Optional, useful for lane-view transformations.
-- **Thresholding** -> Simple thresholding and Otsu’s binarization.
-- **Histogram Equalization** -> Improve night vision image quality.
-- **Image Contours** -> Shape detection for preprocessing objects like pedestrians or stop signs.
-- **Object Detection Using Contours** -> Real-time detection from webcam feed.
-- **Hough Transformations** -> Line detection (lanes) and circle detection (traffic lights).
-- **Vehicle Detection in Video Frames** -> Concepts transferable to pedestrian detection.
-- **Pedestrian Detection from Streaming Video** -> Closest requirement to autonomous vehicle project.
+        height, width = raw_frame.shape[:2] #frame.shape = (height, width, channel)
+
+        #------------------------------
+        #Called Lane detection function
+        #------------------------------
+        frame_processed = lane_detection(frame=raw_frame)
+        #-------------x----------------
+
+
+        # Display frame
+        cv2.imshow("Original", raw_frame)
+        cv2.imshow("Processed frame", frame_processed)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    frame_capture.release()
+    cv2.destroyAllWindows()
+#-------------x-------------
+
+
+# Main Function Called
+main()
+  ```
