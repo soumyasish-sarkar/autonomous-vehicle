@@ -1,8 +1,6 @@
 # Logs for my Autonomous Vehicle Project
 
-## Tools to be installed
-
-### Machine Learning - Image Processing Setup
+## Image Processing - Machine Learning Setup
 
 1. **Anaconda / Miniconda**
    - Why: Helps create isolated environments (No "library conflict").
@@ -66,7 +64,7 @@
 7. **GitHub - Recomended**
    - `Use version control i.e, GitHub recomended`
 
-
+---
 
 ## Learning Requirements
 
@@ -113,14 +111,20 @@ cv2.destroyAllWindows()  # Closes all OpenCV display windows
 ```python
 #WILL BE UPDATED
 ```
-## Image processing - Project work
+---
 
 
-### Flow Chart for Lane detection
+
+# Image processing - Project work
+
+
+# Flow Chart for Lane detection
   ![Alt text](./programs/resources/lanedetection.png)
 
-#### Setting up basic framework
-  - **Code for read and display of both raw and processed video frame on which future modification will be done**
+---
+
+### `Setting up basic framework`
+**Code for read and display of both raw and processed video frame on which future modification will be done**
 
 ```python
 import cv2
@@ -187,12 +191,14 @@ def main():
 main()
  ```
 
-#### Convert to HLS (Hue, Lightness, Saturation)
-1. **Video Frame (BGR)**
+---
+
+### `Convert to HLS (Hue, Lightness, Saturation)`
+**Video Frame (BGR)**
    - What it is: Raw image from camera in Blue–Green–Red color format
    - Problem: Raw image contains too much information — we need to filter it to only road + lanes.
 
-2. **Convert to HLS → Extract L & S Channels**
+**Convert to HLS → Extract L & S Channels**
    > hls = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
    - L = hls[:, :, 1]  `# Lightness`
    - S = hls[:, :, 2]  `# Saturation`
@@ -204,6 +210,64 @@ main()
       - Works better than RGB under shadows, glare, and lighting changes.
    - Goal: Make lane lines easier to detect regardless of brightness variations.
 
-  
+---
+
+### Edge Detection -> Detect lane markings; basis for path planning
+  `Article for Lane detection :` 
+  - https://ieeexplore.ieee.org/document/10499078
+  - https://www.irjet.net/archives/V11/i3/IRJET-V11I3206.pdf
+
+  **Edge Detection Techniques**
+   1. `Sobel Edge Detection techniques / Sobel Operator` -> Produces thicker edges, Good for detecting directional edges.
+   2. Canny Oerator -> suppresses weak/noisy edges (via hysteresis), Produces thin edges (easy for Hough transform line detection), Tunable thresholds (50–150 can be adjusted based on road lighting).
+   3. Prewitt Operator (Similar to Sobel) -> Less accurate, rarely used in modern systems.
+   4. Laplacian of Gaussian (LoG) -> More sensitive to noise, produces double edges.
+   5. Deep Learning-based Edge Detectors -> Holistically-Nested Edge Detection (HED), RCF, DexiNed.
+
+---
+
+### `Sobel Edge Detection on L-channel → Gaussian Blur → Magnitude Threshold`   
+
+*What happens:*    
+- Compute gradients (change in intensity) in the L channel.    
+- Apply Gaussian blur to reduce noise before edge detection.    
+- Use magnitude thresholding to keep only strong gradients (possible lane edges).    
+
+*Why required:*    
+- Lane lines are strong, long edges on the road surface.    
+- Sobel detects intensity transitions (edges) in vertical and horizontal directions.    
+- Noise reduction ensures only meaningful lines remain.    
+
+*Goal:* Identify potential lane boundaries (edges of the white/yellow paint).    
+
+---
+
+### `Color Threshold (S-channel + R-channel)`  
+
+*What happens:*    
+- Threshold S-channel → keep saturated pixels (pure color).    
+- Threshold R-channel → keep bright pixels (white/yellow parts).    
+- Combine them with bitwise AND.    
+
+*Why required:*    
+- Edge detection alone can’t distinguish painted lines from other road edges (like curbs).    
+- Color thresholding ensures we detect lane paint color, not shadows or cracks.    
+
+*Goal:* Confirm that edge candidates are actual painted lane lines.    
+
+---
+
+### `Combine Edge + Color Binary`    
+
+*What happens:*    
+- Combine the two masks (edges and colors) using bitwise OR.    
+
+*Why required:*    
+- Some lane sections may be visible only as color (no strong edge), others only as edge (faded paint).    
+- Combining both ensures more robust detection.    
+
+*Goal:* Unified binary image where lane pixels = white (255), background = black (0).    
+
+---
 
 
