@@ -6,7 +6,13 @@ import numpy as np
 # Lane detection function defination
 #------------------------------------
 def lane_detection(frame):
-    processed_frame= operations to be performed on frame #Need to be edited
+
+    #convert BGR to HSL color space
+    hls_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+
+    processed_frame = hls_frame
+
+
     return processed_frame
 
 #------------------X-------------------
@@ -18,10 +24,8 @@ def lane_detection(frame):
 def main():
 
     #Read video frame
-
-    #webcam input use: cv2.VideoCapture(0)
     frame_path = r"resources/Lane Detection Test Video 01.mp4"
-    frame_capture = cv2.VideoCapture(frame_path)
+    frame_capture = cv2.VideoCapture(frame_path) #webcam input cv2.VideoCapture(0)
 
     if not frame_capture.isOpened():
         print("Unable to open video frame")
@@ -36,8 +40,6 @@ def main():
         # Resize frame for consistency (optional)
         raw_frame = cv2.resize(raw_frame, (640, 360))
 
-        height, width = raw_frame.shape[:2] #frame.shape = (height, width, channel)
-
         #------------------------------
         #Called Lane detection function
         #------------------------------
@@ -47,7 +49,7 @@ def main():
 
         # Display frame
         cv2.imshow("Original", raw_frame)
-        cv2.imshow("Processed frame", frame_processed)
+        cv2.imshow("Processed frame -- L+S", frame_processed)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
