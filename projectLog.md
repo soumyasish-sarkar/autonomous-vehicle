@@ -270,3 +270,11 @@ main()
 
 ---
 
+## `Defining Region of Interest`
+- Define polygon (triangle/trapezoid focusing on road area)
+- ROI to remove extra parts like sky, especially upper portion of the image/video
+- Reduces noise and computational cost
+- We will use **Trapezium** / \ , because it gives wider view than traingle
+- Lower base will be same as the lower verices of image itself, upper vertices of Trapezium somewhere around the center-top (near the horizon line).
+
+---

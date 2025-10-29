@@ -1,6 +1,29 @@
 import cv2
 import numpy as np
 
+
+#------------------------------------
+# HLS function defination
+#------------------------------------
+def hls(frame):
+    # convert BGR to HSL color space
+    hls_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+
+    # Extract BGR to HLS color space
+    L = hls_frame[:, :, 1]  # channel index 1 = Lightness
+    S = hls_frame[:, :, 2]  # channel index 2 = saturation
+
+    # For visualization, we can stack the two channels side by side
+    L_display = cv2.merge([L, L, L])  # Convert single channel to 3-channel grayscale
+    S_display = cv2.merge([S, S, S])
+
+    # Optional: Combine or return either channel for further processing
+    #hls_frame = cv2.addWeighted(L_display, 0.5, S_display, 0.5, 0)
+
+    return hls_frame, L , S
+
+#----------------x-------------------
+
 #------------------------------------
 # sobel_edge_detection on L-channel ->  Gaussian Blur -> Magnitude Threshold -> Color Threshold (S + R channel)
 #------------------------------------
@@ -41,26 +64,32 @@ def sobel_edge_detection(hls_frame, L, S):
 #----------------x-------------------
 
 #------------------------------------
-# HLS function defination
+# Static ROI - Region of Interest
 #------------------------------------
-def hls(frame):
-    # convert BGR to HSL color space
-    hls_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+def roi(processed_sed_frame):
+    # ROI (Region of Interest)
 
-    # Extract BGR to HLS color space
-    L = hls_frame[:, :, 1]  # channel index 1 = Lightness
-    S = hls_frame[:, :, 2]  # channel index 2 = saturation
+    height, width, _ = processed_sed_frame.shape
 
-    # For visualization, we can stack the two channels side by side
-    L_display = cv2.merge([L, L, L])  # Convert single channel to 3-channel grayscale
-    S_display = cv2.merge([S, S, S])
+    # Create a single-channel mask
+    mask = np.zeros((height, width), dtype=np.uint8)
 
-    # Optional: Combine or return either channel for further processing
-    #hls_frame = cv2.addWeighted(L_display, 0.5, S_display, 0.5, 0)
+    # Define the ROI polygon (trapezoid shape)
+    polygon = np.array([[
+        (0, height),
+        (width, height),
+        (width / 1.3, int(height / 1.7)),
+        (width - width / 1.3, int(height / 1.7))
+    ]], np.int32)
 
-    return hls_frame, L , S
+    # Fill the polygon area in the mask
+    cv2.fillPoly(mask, polygon, 255)
 
+    # Apply mask to the processed frame (keeps only ROI)
+    processed_roi_frame = cv2.bitwise_and(processed_sed_frame, processed_sed_frame, mask=mask)
+    return processed_roi_frame
 #----------------x-------------------
+
 
 #------------------------------------
 # Lane detection function defination
@@ -71,10 +100,15 @@ def lane_detection(frame):
     processed_hls_frame, L, S = hls(frame)
 
     #sobel edge detection
-    processed_frame = sobel_edge_detection(processed_hls_frame, L, S)
+    processed_sed_frame = sobel_edge_detection(processed_hls_frame, L, S)
+
+    #Static ROI
+    processed_roi_frame = roi(processed_sed_frame)
 
 
-    return processed_frame
+
+    return processed_roi_frame
+
 
 #------------------X-------------------
 
