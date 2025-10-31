@@ -64,7 +64,7 @@ def sobel_edge_detection(hls_frame, L, S):
 #----------------x-------------------
 
 #------------------------------------
-# Static ROI - Region of Interest
+# Static ROI - Region of Interest  --Needs to be updated to dynamically
 #------------------------------------
 def roi(processed_sed_frame):
     # ROI (Region of Interest)
@@ -78,8 +78,8 @@ def roi(processed_sed_frame):
     polygon = np.array([[
         (0, height),
         (width, height),
-        (width / 1.3, int(height / 1.7)),
-        (width - width / 1.3, int(height / 1.7))
+        (width / 1.6, int(height / 1.5)),
+        (width - width / 1.6, int(height / 1.5))
     ]], np.int32)
 
     # Fill the polygon area in the mask
@@ -89,6 +89,38 @@ def roi(processed_sed_frame):
     processed_roi_frame = cv2.bitwise_and(processed_sed_frame, processed_sed_frame, mask=mask)
     return processed_roi_frame
 #----------------x-------------------
+
+#-------------------------------------
+# Perspective Transformation
+#-------------------------------------
+def perspective(processed_roi_frame):
+    height, width, _ = processed_roi_frame.shape
+
+    # Define source points (trapezoid in ROI)
+    src = np.float32([
+        [0, height],             # Bottom-left
+        [width, height],         # Bottom-right
+        [width / 1.6, height / 1.5],    # Top-right
+        [width - width / 1.6, height / 1.5]     # Top-left
+    ])
+
+    # Define destination points (rectangle for bird's-eye view)
+    dst = np.float32([
+        [0, height],             # Bottom-left
+        [width, height],         # Bottom-right
+        [width, 0],              # Top-right
+        [0, 0]                   # Top-left
+    ])
+
+    # Get perspective transform matrix
+    M = cv2.getPerspectiveTransform(src, dst)
+
+    # Apply warp perspective
+    processed_pers_frame = cv2.warpPerspective(processed_roi_frame, M, (width, height))
+
+    return processed_pers_frame
+
+#-------------------------------------
 
 
 #------------------------------------
@@ -105,9 +137,11 @@ def lane_detection(frame):
     #Static ROI
     processed_roi_frame = roi(processed_sed_frame)
 
+    #Perspective Transformation
+    processed_pers_frame = perspective(processed_roi_frame)
 
 
-    return processed_roi_frame
+    return processed_pers_frame
 
 
 #------------------X-------------------
