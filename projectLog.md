@@ -46,7 +46,7 @@
 
       > pip install numpy
 
-4. **matplotlib**
+5. **matplotlib**
    - `Install inside conda itself`
    - Why: plotting library for Python.
 
@@ -278,3 +278,92 @@ main()
 - Lower base will be same as the lower verices of image itself, upper vertices of Trapezium somewhere around the center-top (near the horizon line).
 
 ---
+
+## `Perspective Transform → Bird’s Eye`    
+
+*What happens:*    
+- The trapezoid ROI is warped to look like a top-down (bird’s-eye) view.    
+
+*Why required:*    
+- In a front-facing camera view, lane lines converge (due to perspective).    
+- In a bird’s-eye view, lanes become almost parallel, simplifying geometric calculations.    
+- Makes polynomial fitting and curvature computation much more accurate.    
+
+*Goal:* Convert to a top-down metric-friendly coordinate system.    
+
+`Referrence: https://www.youtube.com/watch?v=y1EgAzQLB_o`
+
+---
+
+## `Histogram Analysis (Find Lane Bases)`
+
+*What happens:*    
+- Sum pixel intensities vertically in lower half of warped image.    
+- Find two peaks (left and right lane base x-coordinates).    
+
+*Why required:*    
+- Gives the starting points for lane search in the next step.    
+- Tells us roughly where the two lane lines begin at the bottom.    
+
+*Goal:* Initialize the sliding window search positions.    
+
+---
+
+
+## `Sliding Window Lane Detection (Polynomial Fit)`    
+
+*What happens:*    
+- Use sliding windows from bottom to top to follow each lane line pixel by pixel.    
+- Fit a second-degree polynomial (curve) through those pixels.    
+
+*Why required:*    
+- Road lanes are curved — polynomial fit provides a smooth mathematical model.    
+- Sliding windows make it robust to missing paint, noise, and shadows.    
+
+*Goal:* Extract continuous, smooth lane boundaries (left and right curves).    
+
+---
+
+## `Curvature & Center Offset Calculation -- Not Implemented for now`    
+
+*What happens:*    
+- Compute radius of curvature of both polynomials (in meters).    
+- Compute vehicle offset from lane center (in cm).    
+
+*Why required:*    
+- Curvature tells how sharply the road turns.    
+- Offset tells if the car is drifting left or right within the lane.    
+- Useful for steering control in autonomous systems.    
+
+*Goal:* Quantify road geometry and car position.    
+
+---
+
+## `Inverse Warp & Overlay on Original Frame`
+
+*What happens:*    
+- Create a green polygon between lane lines in bird’s-eye view.    
+- Warp it back using the inverse perspective matrix.    
+- Blend it with the original BGR frame using cv2.addWeighted().    
+
+*Why required:*    
+- To visualize detected lanes in the camera’s original perspective.    
+- Helps drivers (or debugging) see detection quality.    
+
+*Goal:* Overlay detected lane area back onto real-world view.    
+
+---
+
+## `Final Output with Lane + Metrics`    
+
+*What happens:*    
+- Draw curvature and center offset text using cv2.putText().    
+- Display or save annotated frame.    
+
+*Why required:*    
+- Provides human-readable results for monitoring, debugging, or UI display.    
+
+*Goal:* Final processed frame showing lane boundaries, curvature, and offset.    
+
+---
+
