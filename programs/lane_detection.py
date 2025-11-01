@@ -13,9 +13,6 @@ def hls(frame):
     L = hls_frame[:, :, 1]  # channel index 1 = Lightness
     S = hls_frame[:, :, 2]  # channel index 2 = saturation
 
-    # For visualization, we can stack the two channels side by side
-    L_display = cv2.merge([L, L, L])  # Convert single channel to 3-channel grayscale
-    S_display = cv2.merge([S, S, S])
 
     return hls_frame, L , S
 
@@ -73,14 +70,6 @@ def roi(processed_sed_frame):
 
     # Define the ROI polygon (trapezoid shape)
 
-    # have different data points in test code
-    # polygon = np.array([[
-    #     (0, height),
-    #     (width, height),
-    #     (int(width * 0.55), int(height * 0.6)),
-    #     (int(width * 0.45), int(height * 0.6))
-    # ]], np.int32)
-
     polygon = np.array([[
         (0, height),
         (width, height),
@@ -117,19 +106,6 @@ def perspective(processed_roi_frame):
         [width, 0],              # Top-right
         [0, 0]                   # Top-left
     ])
-
-    # src = np.float32([
-    #     [width * 0.45, height * 0.65],
-    #     [width * 0.55, height * 0.65],
-    #     [width * 0.9, height],
-    #     [width * 0.1, height]
-    # ])
-    # dst = np.float32([
-    #     [0, 0],
-    #     [width, 0],
-    #     [width, height],
-    #     [0, height]
-    # ])
 
     # Get perspective transform matrix
     M = cv2.getPerspectiveTransform(src, dst)
@@ -206,9 +182,6 @@ def sliding_window_polyfit(binary_frame, left_base, right_base):
     rightx = nonzerox[right_lane_inds]
     righty = nonzeroy[right_lane_inds]
 
-    # left_fit = np.polyfit(lefty, leftx, 2)
-    # right_fit = np.polyfit(righty, rightx, 2)
-
     if len(leftx) > 0 and len(lefty) > 0:
         left_fit = np.polyfit(lefty, leftx, 2)
     else:
@@ -232,26 +205,6 @@ def sliding_window_polyfit(binary_frame, left_base, right_base):
 
 #------------------------------------
 
-#------------------------------------
-# Curvature and Center Offset
-#------------------------------------
-def measure_curvature_offset(left_fit, right_fit, binary_frame):
-    ym_per_pix = 30 / binary_frame.shape[0]
-    xm_per_pix = 3.7 / 700
-    ploty = np.linspace(0, binary_frame.shape[0]-1, binary_frame.shape[0])
-    y_eval = np.max(ploty)
-
-    left_curverad = ((1 + (2 * left_fit[0] * y_eval * ym_per_pix + left_fit[1])**2)**1.5) / abs(2 * left_fit[0])
-    right_curverad = ((1 + (2 * right_fit[0] * y_eval * ym_per_pix + right_fit[1])**2)**1.5) / abs(2 * right_fit[0])
-
-    left_x = left_fit[0]*y_eval**2 + left_fit[1]*y_eval + left_fit[2]
-    right_x = right_fit[0]*y_eval**2 + right_fit[1]*y_eval + right_fit[2]
-    lane_center = (left_x + right_x) / 2
-    center_offset = ((binary_frame.shape[1]/2) - lane_center) * xm_per_pix * 100
-
-    return left_curverad, right_curverad, center_offset
-
-#------------------------------------
 
 #------------------------------------
 # Inverse Warp & Overlay
@@ -266,7 +219,7 @@ def overlay_lane(frame, binary_frame, left_fitx, right_fitx, ploty, Minv):
     result_frame = cv2.addWeighted(frame, 1, newwarp, 0.3, 0)
     return result_frame
 
-#--------------------------------------
+#---------------x---------------------
 
 
 #------------------------------------
@@ -292,12 +245,7 @@ def lane_detection(frame):
     #sliding window
     processed_slide_frame, left_fit, right_fit, ploty, left_fitx, right_fitx = sliding_window_polyfit(binary_frame, left_base, right_base)
 
-    #measure curvature
-    left_curv, right_curv, offset = measure_curvature_offset(left_fit, right_fit, binary_frame)
-
     result_frame = overlay_lane(frame, binary_frame, left_fitx, right_fitx, ploty, Minv)
-    #cv2.putText(result_frame, f'Curvature: {(left_curv + right_curv) / 2:.1f}m', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8,(255, 255, 255), 2)
-    #cv2.putText(result_frame, f'Center Offset: {offset:+.1f} cm', (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
 
     return result_frame
@@ -312,7 +260,7 @@ def lane_detection(frame):
 def main():
 
     #Read video frame
-    frame_path = r"resources/Lane Detection Test Video 02b.mp4"
+    frame_path = r"resources/Lane Detection Test Video 03.mp4"
     frame_capture = cv2.VideoCapture(frame_path) #webcam input cv2.VideoCapture(0)
 
     if not frame_capture.isOpened():
@@ -324,8 +272,6 @@ def main():
     #-----------------------
 
     out_frames =[]
-    width = 640
-    height = 360
     fps = int(frame_capture.get(cv2.CAP_PROP_FPS))
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
@@ -371,7 +317,7 @@ def main():
         file_name += ".mp4"
 
     out_path = f"outputs/{file_name}"
-    out = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+    out = cv2.VideoWriter(out_path, fourcc, fps, (640, 360))
 
     # Write all stored frames to the output file
     for frame in out_frames:
